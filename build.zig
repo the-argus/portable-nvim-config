@@ -1,46 +1,13 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-pub fn add_ts_parser(
-    b: *std.Build,
-    name: []const u8,
-    parser_dir: std.Build.LazyPath,
-    scanner: bool,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-) *std.Build.Step {
-    const parser = b.addLibrary(.{
-        .name = name,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-        }),
-        .linkage = .dynamic,
-    });
-    parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/parser.c") });
-    if (scanner) parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/scanner.c") });
-    parser.addIncludePath(parser_dir.path(b, "src"));
-    parser.linkLibC();
-
-    const lib_extension = block: {
-        if (target.result.os.tag.isDarwin()) {
-            break :block "dylib";
-        } else if (target.result.os.tag == .windows) {
-            break :block "lib";
-        } else {
-            break :block "so";
-        }
-    };
-
-    const install_path = b.fmt("parser/{s}.{s}", .{ name, lib_extension });
-    const parser_install = b.addInstallArtifact(parser, .{ .dest_sub_path = install_path });
-    return &parser_install.step;
-}
+var global_target: ?std.Build.ResolvedTarget = null;
 
 pub fn build(b: *std.Build) !void {
     // options
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    global_target = target;
 
     const build_nvim = b.option(
         bool,
@@ -106,9 +73,9 @@ pub fn build(b: *std.Build) !void {
         .{ .name = "treesitter_html" },
         .{ .name = "treesitter_python" },
         .{ .name = "treesitter_json", .scanner = false },
-        .{ .name = "treesitter_go",  .scanner = false },
+        .{ .name = "treesitter_go", .scanner = false },
         .{ .name = "treesitter_javascript" },
-        .{ .name = "treesitter_c_sharp"  },
+        .{ .name = "treesitter_c_sharp" },
         .{ .name = "treesitter_rust" },
         .{ .name = "treesitter_printf", .scanner = false },
         .{ .name = "treesitter_toml" },
@@ -138,7 +105,7 @@ pub fn build(b: *std.Build) !void {
                 break :block dep.path(".");
             };
             const parsername = grammar.name[offset..];
-            std.debug.print("installing grammar {s}\n", .{ parsername });
+            std.debug.print("installing grammar {s}\n", .{parsername});
             b.getInstallStep().dependOn(add_ts_parser(b, parsername, path, grammar.scanner, target, optimize));
         }
 
@@ -146,4 +113,95 @@ pub fn build(b: *std.Build) !void {
         b.getInstallStep().dependOn(add_ts_parser(b, "markdown", markdown.path("tree-sitter-markdown/"), true, target, optimize));
         b.getInstallStep().dependOn(add_ts_parser(b, "markdown_inline", markdown.path("tree-sitter-markdown-inline/"), true, target, optimize));
     }
+
+    const fzf_step = buildFzfNative(b, target, optimize);
+    b.getInstallStep().dependOn(fzf_step);
+
+    const install_fzf_lib = b.step("install_fzf", "Install libfzf.dll into the plugin directory");
+    install_fzf_lib.dependOn(installFzfNative(b));
+    // full build must be completed before installation can happen
+    install_fzf_lib.dependOn(b.getInstallStep());
+}
+
+fn dynlibExtensionForTarget(target: std.Build.ResolvedTarget) []const u8 {
+    if (target.result.os.tag.isDarwin()) {
+        return "dylib";
+    } else if (target.result.os.tag == .windows) {
+        return "dll";
+    } else {
+        return "so";
+    }
+}
+
+pub fn add_ts_parser(
+    b: *std.Build,
+    name: []const u8,
+    parser_dir: std.Build.LazyPath,
+    scanner: bool,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step {
+    const parser = b.addLibrary(.{
+        .name = name,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }),
+        .linkage = .dynamic,
+    });
+    parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/parser.c") });
+    if (scanner) parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/scanner.c") });
+    parser.addIncludePath(parser_dir.path(b, "src"));
+    parser.linkLibC();
+
+    const install_path = b.fmt("parser/{s}.{s}", .{ name, dynlibExtensionForTarget(target) });
+    const parser_install = b.addInstallArtifact(parser, .{ .dest_sub_path = install_path });
+    return &parser_install.step;
+}
+
+fn buildFzfNative(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step {
+    const fzf_lib = b.addLibrary(.{
+        .name = "fzf",
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+        }),
+        .linkage = .dynamic,
+    });
+    fzf_lib.addCSourceFile(.{ .file = b.path("pack/plugins/start/telescope-fzf-native.nvim/src/fzf.c") });
+    fzf_lib.addIncludePath(b.path("pack/plugins/start/telescope-fzf-native.nvim/src"));
+    fzf_lib.linkLibC();
+    
+    const install_path = b.fmt("fzf.{s}", .{ dynlibExtensionForTarget(target) });
+    const install = b.addInstallArtifact(fzf_lib, .{ .dest_sub_path = install_path });
+    return &install.step;
+}
+
+pub fn installFzfNative(b: *std.Build) *std.Build.Step {
+    const step = b.allocator.create(std.Build.Step) catch @panic("OOM");
+
+    step.* = std.Build.Step.init(.{
+        .id = .custom,
+        .name = "install_fzf",
+        .makeFn = installFzfNativeMakeFn,
+        .owner = b,
+    });
+
+    return step;
+}
+
+fn installFzfNativeMakeFn(step: *std.Build.Step, make_options: std.Build.Step.MakeOptions) anyerror!void {
+    _ = make_options;
+    const b = step.owner;
+    const libname = b.fmt("fzf.{s}", .{ dynlibExtensionForTarget(global_target.?) });
+    const relative_src = b.fmt("zig-out/lib/{s}", .{ libname });
+    const relative_dest = "pack/plugins/start/telescope-fzf-native.nvim/build";
+    const cwd = std.fs.cwd();
+    // using ascii path should be fine, all ascii characters so on windows it is wtf8 compatible, in theory
+    const dest_dir = try cwd.makeOpenPath(relative_dest, .{});
+    try cwd.copyFile(relative_src, dest_dir, libname, .{});
 }
