@@ -62,16 +62,20 @@ vim.opt.errorbells = false              -- No error bells
 vim.opt.backspace = "indent,eol,start"  -- Allow backspacing over indents, newlines, and start of insert
 vim.opt.autochdir = false               -- Don't auto change directory
 vim.opt.iskeyword:append("-")           -- Treat dash as part of word
-vim.opt.path:append("**")               -- include subdirectories in search
-vim.opt.selection = "exclusive"         -- Dont include last character in selection in copy
+vim.opt.iskeyword:remove("/")           -- Consider / to be a break in words
+vim.opt.path:append("**")               -- Include subdirectories in search
+vim.opt.selection = "inclusive"         -- Include last character in selection in copy
 vim.opt.mouse = "a"                     -- Enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- Use system clipboard
 vim.opt.modifiable = true               -- Allow buffer modifications
 vim.opt.encoding = "UTF-8"              -- Set encoding
 
--- Cursor settings
-vim.opt.guicursor =
-"n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175"
+-- Make cursor blink nicely
+vim.o.guicursor = table.concat({
+  "n-v-c:block-Cursor/lCursor-blinkwait1000-blinkon100-blinkoff100",
+  "i-ci:ver25-Cursor/lCursor-blinkwait1000-blinkon100-blinkoff100",
+  "r:hor50-Cursor/lCursor-blinkwait100-blinkon100-blinkoff100"
+}, ",")
 
 -- Folding settings ( I don't use these )
 -- vim.opt.foldmethod = "expr"                             -- Use expression for folding
