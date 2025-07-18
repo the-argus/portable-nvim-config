@@ -4,3 +4,18 @@
 [submodule "plugins/telescope.nvim"]
 	path = pack/plugins/start/telescope.nvim
 	url = https://github.com/nvim-telescope/telescope.nvim
+[submodule "pack/plugins/start/telescope-file-browser.nvim"]
+	path = pack/plugins/start/telescope-file-browser.nvim
+	url = https://github.com/nvim-telescope/telescope-file-browser.nvim
+[submodule "pack/plugins/start/nvim-surround"]
+	path = pack/plugins/start/nvim-surround
+	url = https://github.com/kylechui/nvim-surround
+[submodule "pack/plugins/start/rainbow-delimiters.nvim"]
+	path = pack/plugins/start/rainbow-delimiters.nvim
+	url = https://github.com/hiphish/rainbow-delimiters.nvim
+[submodule "pack/plugins/start/nvim-web-devicons"]
+	path = pack/plugins/start/nvim-web-devicons
+	url = https://github.com/nvim-tree/nvim-web-devicons
+[submodule "pack/plugins/start/nvim-colorizer.lua"]
+	path = pack/plugins/start/nvim-colorizer.lua
+	url = https://github.com/norcalli/nvim-colorizer.lua
