@@ -22,3 +22,9 @@
 [submodule "pack/plugins/start/base16-nvim"]
 	path = pack/plugins/start/base16-nvim
 	url = https://github.com/RRethy/base16-nvim
+[submodule "pack/plugins/start/substitute.nvim"]
+	path = pack/plugins/start/substitute.nvim
+	url = https://github.com/gbprod/substitute.nvim
+[submodule "pack/plugins/start/leap.nvim"]
+	path = pack/plugins/start/leap.nvim
+	url = https://github.com/ggandor/leap.nvim

@@ -4,4 +4,6 @@ require "perpluginconfig.telescope"
 require "perpluginconfig.colorizer"
 require "perpluginconfig.treesitter"
 require "perpluginconfig.devicons"
+require "perpluginconfig.substitute"
+require "perpluginconfig.leap"
 
