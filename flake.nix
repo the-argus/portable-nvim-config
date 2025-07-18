@@ -28,7 +28,7 @@
           packages = with pkgs; [
             zig_0_14
             neovim
-            (pkgs.writeShellScriptBin "tvim" "nvim -u init.lua")
+            (pkgs.writeShellScriptBin "tvim" "nvim -u init.lua \"$@\"")
           ];
         };
     });
