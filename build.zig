@@ -18,7 +18,10 @@ pub fn build(b: *std.Build) !void {
     var nvim: ?*std.Build.Dependency = null;
 
     if (build_nvim) {
-        nvim = b.lazyDependency("nvim", .{ .target = target, .optimize = optimize });
+        nvim = b.lazyDependency("nvim", .{
+            .target = target,
+            .optimize = optimize,
+        });
     }
 
     const zls = b.dependency("zls", .{
@@ -65,10 +68,9 @@ pub fn build(b: *std.Build) !void {
         .{ .name = "treesitter_vim" },
     };
 
-    if (nvim) |_| {
-        // const install_artifact = b.addInstallArtifact(n.artifact("nlua0"), .{});
-        // b.getInstallStep().dependOn(&install_artifact.step);
-        // b.getInstallStep().dependOn(n.builder.getInstallStep());
+    if (nvim) |n| {
+        const tls = n.builder.top_level_steps.get("nvim") orelse @panic("expected a step called nvim inside the nvim dependency");
+        b.getInstallStep().dependOn(&tls.step);
 
         for (grammars) |grammar| {
             const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });
