@@ -8,4 +8,5 @@ require "perpluginconfig.substitute"
 require "perpluginconfig.leap"
 require "perpluginconfig.gitsigns"
 require "perpluginconfig.todocomments"
+require "perpluginconfig.cmp"
 
