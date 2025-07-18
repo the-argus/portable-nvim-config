@@ -1,0 +1,6 @@
+[submodule "plugins/plenary.nvim"]
+	path = plugins/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim
+[submodule "plugins/telescope.nvim"]
+	path = plugins/telescope.nvim
+	url = https://github.com/nvim-telescope/telescope.nvim
