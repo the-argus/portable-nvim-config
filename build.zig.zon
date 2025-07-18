@@ -112,32 +112,10 @@
             .url = "git+https://github.com/tree-sitter-grammars/tree-sitter-vim?ref=v0.7.0#3dd4747082d1b717b8978211c06ef7b6cd16125b",
             .hash = "N-V-__8AAMArVAB4uo2wg2XRs8HBviQ4Pq366cC_iRolX4Vc",
         },
-
-        // .fzf_linux_amd64 = .{
-        //     .url = "https://github.com/junegunn/fzf/releases/download/v0.64.0/fzf-0.64.0-linux_amd64.tar.gz",
-        //     .hash = "N-V-__8AAMnaAwCEutreuREG3QayBVEZqUTDQAAANsrv2OIt",
-        //     .lazy = true,
-        // },
-        // .fzf_linux_arm64 = .{
-        //     .url = "https://github.com/junegunn/fzf/releases/download/v0.64.0/fzf-0.64.0-linux_arm64.tar.gz",
-        //     .hash = "N-V-__8AAMnaAwCEutreuREG3QayBVEZqUTDQAAANsrv2OIt",
-        //     .lazy = true,
-        // },
-        // .fzf_darwin_arm64 = .{
-        //     .url = "https://github.com/junegunn/fzf/releases/download/v0.64.0/fzf-0.64.0-darwin_arm64.tar.gz",
-        //     .hash = "N-V-__8AAMnaAwCEutreuREG3QayBVEZqUTDQAAANsrv2OIt",
-        //     .lazy = true,
-        // },
-        // .fzf_darwin_amd64 = .{
-        //     .url = "https://github.com/junegunn/fzf/releases/download/v0.64.0/fzf-0.64.0-darwin_amd64.tar.gz",
-        //     .hash = "N-V-__8AAMnaAwCEutreuREG3QayBVEZqUTDQAAANsrv2OIt",
-        //     .lazy = true,
-        // },
-        // .fzf_windows_amd64 = .{
-        //     .url = "https://github.com/junegunn/fzf/releases/download/v0.64.0/fzf-0.64.0-windows_amd64.zip",
-        //     .hash = "N-V-__8AAMnaAwCEutreuREG3QayBVEZqUTDQAAANsrv2OIt",
-        //     .lazy = true,
-        // },
+        .zls = .{
+            .url = "https://github.com/zigtools/zls/archive/refs/tags/0.14.0.tar.gz",
+            .hash = "zls-0.14.0-rmm5fjKFIADiTeGEPxU79BXPmOqepsgJPJrghXzTStc5",
+        },
     },
     .paths = .{
         "build.zig.zon",

@@ -15,47 +15,22 @@ pub fn build(b: *std.Build) !void {
         "Fetch the source code for the neovim editor and build it and include the executable in the output.",
     ) orelse false;
 
-    // const download_fzf = b.option(
-    //     bool,
-    //     "download_fzf",
-    //     "Download a binary of fzf for the target platform",
-    // ) orelse true;
-
     var nvim: ?*std.Build.Dependency = null;
-    // var fzf_bin: ?*std.Build.Dependency = null;
 
     if (build_nvim) {
         nvim = b.lazyDependency("nvim", .{ .target = target, .optimize = optimize });
     }
 
-    // if (download_fzf) {
-    //     const arch = target.result.cpu.arch;
-    //     const os = target.result.os.tag;
-    //     fzf_bin = switch (os) {
-    //         .linux => switch (arch) {
-    //             .x86_64 => b.lazyDependency("fzf_linux_amd64", .{}),
-    //             .aarch64 => b.lazyDependency("fzf_linux_arm64", .{}),
-    //             else => @panic("unsupported architecture for linux"),
-    //         },
-    //         .macos => switch (arch) {
-    //             .x86_64 => b.lazyDependency("fzf_darwin_amd64", .{}),
-    //             .aarch64 => b.lazyDependency("fzf_darwin_arm64", .{}),
-    //             else => @panic("unsupported cpu architecture for macos"),
-    //         },
-    //         .windows => block: {
-    //             if (arch != .x86_64) {
-    //                 @panic("unsupported cpu architecture for windows");
-    //             }
-    //             break :block b.lazyDependency("fzf_windows_amd64", .{});
-    //         },
-    //         else => @panic("unsupported OS"),
-    //     };
-    // }
-    //
-    // if (fzf_bin) |fzf| {
-    //     const install_step = b.addInstallBinFile(fzf.path("fzf"), "fzf");
-    //     b.getInstallStep().dependOn(&install_step.step);
-    // }
+    const zls = b.dependency("zls", .{
+        .target = target,
+        .optimize = optimize,
+        .@"single-threaded" = false,
+        .pie = true,
+        // .strip = true,
+        .@"use-llvm" = true,
+    });
+
+    b.installArtifact(zls.artifact("zls"));
 
     const Grammar = struct {
         name: []const u8,
