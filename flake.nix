@@ -28,7 +28,11 @@
           packages = with pkgs; [
             zig_0_14
             neovim
-            (pkgs.writeShellScriptBin "tvim" "nvim -u init.lua \"$@\"")
+            (pkgs.writeShellScriptBin "tvim" ''
+                export XDG_CONFIG_HOME=$PWD/..
+                export NVIM_APPNAME=$(${pkgs.coreutils}/bin/basename $PWD)
+                nvim -u init.lua $@
+            '')
           ];
         };
     });
