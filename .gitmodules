@@ -28,3 +28,6 @@
 [submodule "pack/plugins/start/leap.nvim"]
 	path = pack/plugins/start/leap.nvim
 	url = https://github.com/ggandor/leap.nvim
+[submodule "pack/plugins/start/gitsigns.nvim"]
+	path = pack/plugins/start/gitsigns.nvim
+	url = https://github.com/lewis6991/gitsigns.nvim

@@ -6,4 +6,5 @@ require "perpluginconfig.treesitter"
 require "perpluginconfig.devicons"
 require "perpluginconfig.substitute"
 require "perpluginconfig.leap"
+require "perpluginconfig.gitsigns"
 
