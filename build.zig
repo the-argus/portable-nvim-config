@@ -69,8 +69,16 @@ pub fn build(b: *std.Build) !void {
     };
 
     if (nvim) |n| {
-        const tls = n.builder.top_level_steps.get("nvim") orelse @panic("expected a step called nvim inside the nvim dependency");
-        b.getInstallStep().dependOn(&tls.step);
+        const nvim_tls = n.builder.top_level_steps.get("nvim") orelse @panic("expected a step called nvim inside the nvim dependency");
+
+        // evil hack to make the neovim builder install into our directory
+        n.builder.install_path = b.install_path;
+        n.builder.install_prefix = b.install_prefix;
+        n.builder.lib_dir = b.lib_dir;
+        n.builder.exe_dir = b.exe_dir;
+        n.builder.h_dir = b.h_dir;
+        n.builder.dest_dir = b.dest_dir;
+        b.getInstallStep().dependOn(&nvim_tls.step);
 
         for (grammars) |grammar| {
             const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });
