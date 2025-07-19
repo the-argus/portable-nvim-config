@@ -38,7 +38,7 @@ vim.opt.showmatch = true -- Highlight matching brackets
 vim.opt.matchtime = 9999 -- How long to show matching bracket
 vim.opt.cmdheight = 1    -- Command line height
 -- https://neovim.io/doc/user/options.html#'completeopt'
-vim.opt.completeopt = "fuzzy,menuone,noselect,popup"
+-- vim.opt.completeopt = "fuzzy,menuone,noselect,popup" -- not available in 0.9
 vim.opt.pumheight = 10     -- Popup menu height
 -- vim.opt.pumblend = 10      -- Popup menu transparency
 vim.opt.winblend = 0       -- Floating window transparency
