@@ -3,40 +3,6 @@ const builtin = @import("builtin");
 
 var global_target: ?std.Build.ResolvedTarget = null;
 
-/// function meant specifically for the build graph of neovim
-fn stealInstalls(b: *std.Build, victim: *std.Build.Step) void {
-
-    // steal the nvim runstep which depends on stuff already being installed in
-    // runtime/ dir. this generates docs and things
-    if (victim.cast(std.Build.Step.Run)) |runstep| {
-        for (runstep.step.dependencies.items) |idep| {
-            if (idep.cast(std.Build.Step.InstallDir)) |id| {
-                const install_path: std.Build.LazyPath = .{ .cwd_relative = b.install_path };
-                runstep.setCwd(install_path.path(b, "runtime/"));
-                // actually make the install directory go to our output
-                id.step.owner = b;
-            }
-        }
-    }
-
-    // find WriteFile under InstallDir which is the syntax/generated.vim file
-    if (victim.cast(std.Build.Step.InstallDir)) |id| {
-        for (id.step.dependencies.items) |idep| {
-            if (idep.cast(std.Build.Step.WriteFile)) |wf| {
-                b.installDirectory(.{
-                    .source_dir = wf.getDirectory(),
-                    .install_dir = .prefix,
-                    .install_subdir = "runtime/",
-                });
-            }
-        }
-    }
-
-    for (victim.dependencies.items) |dep| {
-        stealInstalls(b, dep);
-    }
-}
-
 pub fn build(b: *std.Build) !void {
     // options
     const target = b.standardTargetOptions(.{});
@@ -47,7 +13,7 @@ pub fn build(b: *std.Build) !void {
         bool,
         "build_nvim",
         "Fetch the source code for the neovim editor and build it and include the executable in the output.",
-    ) orelse false;
+    ) orelse true;
 
     var nvim: ?*std.Build.Dependency = null;
 
@@ -132,6 +98,38 @@ pub fn build(b: *std.Build) !void {
             stealInstalls(b, dep);
         }
 
+        // manually install runtime elements of neovim, all the .vim .lua .spl
+        // etc files
+        const src = try n.builder.build_root.handle.openDir("runtime", .{ .iterate = true });
+        var walker = try src.walk(b.allocator);
+
+        while (try walker.next()) |entry| {
+            const ext = std.fs.path.extension(entry.basename);
+            var found = false;
+            const good_extensions = [_][]const u8{ ".vim", ".lua", ".spl", ".ico", ".tutor", ".json", ".scm" };
+            for (good_extensions) |good_ext| {
+                if (std.mem.eql(u8, ext, good_ext)) {
+                    found = true;
+                    break;
+                }
+                // std.debug.print("file with basename {s} and extension {s} and path {s} failed test", .{ entry.basename, ext, entry.path });
+                // break;
+            }
+            if (!found) continue;
+
+            const sub_path = b.pathJoin(&.{ "runtime", entry.path });
+            std.debug.print("sub path: {s}\n", .{sub_path});
+            const install_step = b.addInstallFile(
+                std.Build.LazyPath{ .src_path = .{
+                    .owner = n.builder,
+                    .sub_path = sub_path,
+                } },
+                sub_path,
+            );
+
+            b.getInstallStep().dependOn(&install_step.step);
+        }
+
         for (grammars) |grammar| {
             const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });
             const offset = ("treesitter_").len;
@@ -158,6 +156,40 @@ pub fn build(b: *std.Build) !void {
     install_fzf_lib.dependOn(installFzfNative(b));
     // full build must be completed before installation can happen
     install_fzf_lib.dependOn(b.getInstallStep());
+}
+
+/// function meant specifically for the build graph of neovim
+fn stealInstalls(b: *std.Build, victim: *std.Build.Step) void {
+
+    // steal the nvim runstep which depends on stuff already being installed in
+    // runtime/ dir. this generates docs and things
+    if (victim.cast(std.Build.Step.Run)) |runstep| {
+        for (runstep.step.dependencies.items) |idep| {
+            if (idep.cast(std.Build.Step.InstallDir)) |id| {
+                const install_path: std.Build.LazyPath = .{ .cwd_relative = b.install_path };
+                runstep.setCwd(install_path.path(b, "runtime/"));
+                // actually make the install directory go to our output
+                id.step.owner = b;
+            }
+        }
+    }
+
+    // find WriteFile under InstallDir which is the syntax/generated.vim file
+    if (victim.cast(std.Build.Step.InstallDir)) |id| {
+        for (id.step.dependencies.items) |idep| {
+            if (idep.cast(std.Build.Step.WriteFile)) |wf| {
+                b.installDirectory(.{
+                    .source_dir = wf.getDirectory(),
+                    .install_dir = .prefix,
+                    .install_subdir = "runtime/",
+                });
+            }
+        }
+    }
+
+    for (victim.dependencies.items) |dep| {
+        stealInstalls(b, dep);
+    }
 }
 
 fn dynlibExtensionForTarget(target: std.Build.ResolvedTarget) []const u8 {
