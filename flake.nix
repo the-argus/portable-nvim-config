@@ -27,12 +27,11 @@
         {
           packages = with pkgs; [
             zig_0_14
-            neovim
             (pkgs.writeShellScriptBin "tvim" ''
                 export XDG_CONFIG_HOME=$PWD/..
                 export NVIM_APPNAME=$(${pkgs.coreutils}/bin/basename $PWD)
-		export VIMRUNTIME=$PWD/zig-out/runtime
-		export PATH=$PWD/zig-out/bin:$PATH
+                export VIMRUNTIME=$PWD/zig-out/runtime
+                export PATH=$PWD/zig-out/bin:$PATH
                 nvim -u init.lua $@
             '')
             (pkgs.writeShellScriptBin "build" ''
