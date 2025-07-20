@@ -166,7 +166,7 @@ pub fn add_ts_parser(
     parser.addIncludePath(parser_dir.path(b, "src"));
     parser.linkLibC();
 
-    const install_path = b.fmt("parser/{s}.{s}", .{ name, dynlibExtensionForTarget(target) });
+    const install_path = b.fmt("nvim/parser/{s}.{s}", .{ name, dynlibExtensionForTarget(target) });
     const parser_install = b.addInstallArtifact(parser, .{ .dest_sub_path = install_path });
     return &parser_install.step;
 }
