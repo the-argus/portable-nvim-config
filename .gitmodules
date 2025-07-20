@@ -49,3 +49,6 @@
 [submodule "pack/plugins/start/cmp-cmdline"]
 	path = pack/plugins/start/cmp-cmdline
 	url = https://github.com/hrsh7th/cmp-cmdline
+[submodule "pack/plugins/start/nvim-treesitter"]
+	path = pack/plugins/start/nvim-treesitter
+	url = https://github.com/nvim-treesitter/nvim-treesitter
