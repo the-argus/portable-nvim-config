@@ -31,6 +31,7 @@
             (pkgs.writeShellScriptBin "tvim" ''
                 export XDG_CONFIG_HOME=$PWD/..
                 export NVIM_APPNAME=$(${pkgs.coreutils}/bin/basename $PWD)
+		export PATH=$PWD/zig-out/bin:$PATH
                 nvim -u init.lua $@
             '')
           ];
