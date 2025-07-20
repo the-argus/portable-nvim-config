@@ -34,6 +34,9 @@
 		export PATH=$PWD/zig-out/bin:$PATH
                 nvim -u init.lua $@
             '')
+            (pkgs.writeShellScriptBin "build" ''
+	    	zig build -Dbuild_nvim -Dtarget=x86_64-linux-musl
+            '')
           ];
         };
     });
