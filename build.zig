@@ -84,8 +84,6 @@ pub fn build(b: *std.Build) !void {
 
         // traverse through steps and their dependencies to find the neovim artifact and generated files
         for (nvim_tls.step.dependencies.items) |dep| {
-            std.debug.print("found dep with id: {}\n", .{dep.id});
-
             // the only top level artifact is nvim
             if (dep.cast(std.Build.Step.InstallArtifact)) |install_artifact| {
                 const compile_step = install_artifact.artifact;
@@ -104,21 +102,30 @@ pub fn build(b: *std.Build) !void {
         var walker = try src.walk(b.allocator);
 
         while (try walker.next()) |entry| {
+            if (entry.kind != .file) continue;
             const ext = std.fs.path.extension(entry.basename);
-            var found = false;
-            const good_extensions = [_][]const u8{ ".vim", ".lua", ".spl", ".ico", ".tutor", ".json", ".scm" };
-            for (good_extensions) |good_ext| {
-                if (std.mem.eql(u8, ext, good_ext)) {
-                    found = true;
+            const basename = std.fs.path.basename(entry.basename);
+            var bad = false;
+            const bad_extensions = [_][]const u8{ ".zig", "" };
+            const bad_filenames = [_][]const u8{"CMakeLists.txt"};
+            for (bad_extensions) |bad_ext| {
+                if (std.mem.eql(u8, ext, bad_ext)) {
+                    bad = true;
                     break;
                 }
-                // std.debug.print("file with basename {s} and extension {s} and path {s} failed test", .{ entry.basename, ext, entry.path });
-                // break;
             }
-            if (!found) continue;
+            for (bad_filenames) |bad_name| {
+                if (std.mem.eql(u8, basename, bad_name)) {
+                    bad = true;
+                    break;
+                }
+            }
+            if (bad) {
+                // std.debug.print("deleted {s}\n", .{entry.path});
+                continue;
+            }
 
             const sub_path = b.pathJoin(&.{ "runtime", entry.path });
-            std.debug.print("sub path: {s}\n", .{sub_path});
             const install_step = b.addInstallFile(
                 std.Build.LazyPath{ .src_path = .{
                     .owner = n.builder,
@@ -130,6 +137,8 @@ pub fn build(b: *std.Build) !void {
             b.getInstallStep().dependOn(&install_step.step);
         }
 
+        // not dependent on neovim to build but it doesnt make much sense to
+        // build the grammars without neovim
         for (grammars) |grammar| {
             const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });
             const offset = ("treesitter_").len;
@@ -140,7 +149,6 @@ pub fn build(b: *std.Build) !void {
                 break :block dep.path(".");
             };
             const parsername = grammar.name[offset..];
-            std.debug.print("installing grammar {s}\n", .{parsername});
             b.getInstallStep().dependOn(add_ts_parser(b, parsername, path, grammar.scanner, target, optimize));
         }
 
