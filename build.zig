@@ -66,19 +66,46 @@ pub fn build(b: *std.Build) !void {
         // markdown included manually
         .{ .name = "treesitter_lua" },
         .{ .name = "treesitter_vim" },
+        .{ .name = "treesitter_diff", .scanner = false },
+        .{ .name = "treesitter_asm", .scanner = false },
+        .{ .name = "treesitter_godot_resource" },
+        .{ .name = "treesitter_gdscript" },
+        .{ .name = "treesitter_disassembly" },
+        .{ .name = "treesitter_slint", .scanner = false },
+        .{ .name = "treesitter_qml" },
+        .{ .name = "treesitter_nix" },
+        .{ .name = "treesitter_nim" },
+        .{ .name = "treesitter_nasm", .scanner = false },
+        .{ .name = "treesitter_haskell"},
     };
 
     if (nvim) |n| {
         const nvim_tls = n.builder.top_level_steps.get("nvim") orelse @panic("expected a step called nvim inside the nvim dependency");
 
-        // evil hack to make the neovim builder install into our directory
-        n.builder.install_path = b.install_path;
-        n.builder.install_prefix = b.install_prefix;
-        n.builder.lib_dir = b.lib_dir;
-        n.builder.exe_dir = b.exe_dir;
-        n.builder.h_dir = b.h_dir;
-        n.builder.dest_dir = b.dest_dir;
-        b.getInstallStep().dependOn(&nvim_tls.step);
+        // traverse through steps and their dependencies to find the neovim artifact and generated files
+        for (nvim_tls.step.dependencies.items) |dep| {
+            std.debug.print("found dep with id: {}\n", .{dep.id});
+
+            if (dep.cast(std.Build.Step.InstallArtifact)) |install_artifact| {
+                const compile_step = install_artifact.artifact;
+                // statically link neovim with libc, musl recommended
+                compile_step.rdynamic = false;
+                b.installArtifact(compile_step);
+            }
+            if (dep.cast(std.Build.Step.InstallDir)) |install_dir| {
+                for (install_dir.step.dependencies.items) |idep| {
+                    std.debug.print("found inner dep with id: {}\n", .{idep.id});
+
+                    if (idep.cast(std.Build.Step.WriteFile)) |wf| {
+                        b.installDirectory(.{
+                            .source_dir = wf.getDirectory(),
+                            .install_dir = .prefix,
+                            .install_subdir = "runtime/",
+                        });
+                    }
+                }
+            }
+        }
 
         for (grammars) |grammar| {
             const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });

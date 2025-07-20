@@ -116,6 +116,50 @@
             .url = "https://github.com/zigtools/zls/archive/refs/tags/0.14.0.tar.gz",
             .hash = "zls-0.14.0-rmm5fjKFIADiTeGEPxU79BXPmOqepsgJPJrghXzTStc5",
         },
+        .treesitter_diff = .{
+            .url = "https://github.com/the-mikedavis/tree-sitter-diff/archive/e42b8def4f75633568f1aecfe01817bf15164928.tar.gz",
+            .hash = "N-V-__8AALjvEgCiOtMLguuI2m2LeakirxPrnYMF0tKLVcgr",
+        },
+        .treesitter_asm = .{
+            .url = "https://github.com/RubixDev/tree-sitter-asm/archive/refs/tags/v0.24.0.tar.gz",
+            .hash = "N-V-__8AAMxIAwADbQsDOYSe2aCB2FJNKpf0F5-qT7nSiLea",
+        },
+        .treesitter_godot_resource = .{
+            .url = "https://github.com/PrestonKnopp/tree-sitter-godot-resource/archive/refs/tags/v0.7.0.tar.gz",
+            .hash = "N-V-__8AAIZ_AgBGWk6PQ-_8ZrDta_nizNOtZJPyrI0blo2y",
+        },
+        .treesitter_gdscript = .{
+            .url = "https://github.com/PrestonKnopp/tree-sitter-gdscript/archive/refs/tags/v6.0.0.tar.gz",
+            .hash = "N-V-__8AAK_fIADQuiwn36Jqdh9cz1TQUUM_22J-q2PXtFrU",
+        },
+        .treesitter_disassembly = .{
+            .url = "https://github.com/ColinKennedy/tree-sitter-disassembly/archive/0229c0211dba909c5d45129ac784a3f4d49c243a.tar.gz",
+            .hash = "N-V-__8AAFSmAgDkyx9I4zpRsJ23F6JoImFeBtEd3rqG0uss",
+        },
+        .treesitter_slint = .{
+            .url = "https://github.com/slint-ui/tree-sitter-slint/archive/96bc969d20ff347030519184ea2467f4046a524d.tar.gz",
+            .hash = "N-V-__8AAOINHQCHYGLzmJ11HBdLQnkwjEbhUOs6J7oReKJB",
+        },
+        .treesitter_qml = .{
+            .url = "https://github.com/yuja/tree-sitter-qmljs/archive/refs/tags/0.2.0.tar.gz",
+            .hash = "N-V-__8AAMEHnQB4La0vniFCk-LJ_P2fMfz6JHoL9L1-R1Fn",
+        },
+        .treesitter_nix = .{
+            .url = "https://github.com/nix-community/tree-sitter-nix/archive/refs/tags/v0.3.0.tar.gz",
+            .hash = "N-V-__8AALFvCwC2emRL95X_BumYg4j2s-aFZgF2BTmZWEZO",
+        },
+        .treesitter_nim = .{
+            .url = "https://github.com/alaviss/tree-sitter-nim/archive/refs/tags/0.6.2.tar.gz",
+            .hash = "N-V-__8AAJY_LAQ6h52IYnnN_9tzLXnCQEt0huz8dh_mYEee",
+        },
+        .treesitter_nasm = .{
+            .url = "https://github.com/naclsn/tree-sitter-nasm/archive/d1b3638d017f2a8585e26dcfc66fe1df94185e30.tar.gz",
+            .hash = "N-V-__8AABZgVADNwShjWu6FlEgqOlKX4UW9xXuwKI8wfwm1",
+        },
+        .treesitter_haskell = .{
+            .url = "https://github.com/tree-sitter/tree-sitter-haskell/archive/refs/tags/v0.23.1.tar.gz",
+            .hash = "N-V-__8AAEygQgHueXHLASAkd_FKOV2S_sO5NeerPDEb9CMf",
+        },
     },
     .paths = .{
         "build.zig.zon",
