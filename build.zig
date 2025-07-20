@@ -3,6 +3,40 @@ const builtin = @import("builtin");
 
 var global_target: ?std.Build.ResolvedTarget = null;
 
+/// function meant specifically for the build graph of neovim
+fn stealInstalls(b: *std.Build, victim: *std.Build.Step) void {
+
+    // steal the nvim runstep which depends on stuff already being installed in
+    // runtime/ dir. this generates docs and things
+    if (victim.cast(std.Build.Step.Run)) |runstep| {
+        for (runstep.step.dependencies.items) |idep| {
+            if (idep.cast(std.Build.Step.InstallDir)) |id| {
+                const install_path: std.Build.LazyPath = .{ .cwd_relative = b.install_path };
+                runstep.setCwd(install_path.path(b, "runtime/"));
+                // actually make the install directory go to our output
+                id.step.owner = b;
+            }
+        }
+    }
+
+    // find WriteFile under InstallDir which is the syntax/generated.vim file
+    if (victim.cast(std.Build.Step.InstallDir)) |id| {
+        for (id.step.dependencies.items) |idep| {
+            if (idep.cast(std.Build.Step.WriteFile)) |wf| {
+                b.installDirectory(.{
+                    .source_dir = wf.getDirectory(),
+                    .install_dir = .prefix,
+                    .install_subdir = "runtime/",
+                });
+            }
+        }
+    }
+
+    for (victim.dependencies.items) |dep| {
+        stealInstalls(b, dep);
+    }
+}
+
 pub fn build(b: *std.Build) !void {
     // options
     const target = b.standardTargetOptions(.{});
@@ -76,7 +110,7 @@ pub fn build(b: *std.Build) !void {
         .{ .name = "treesitter_nix" },
         .{ .name = "treesitter_nim" },
         .{ .name = "treesitter_nasm", .scanner = false },
-        .{ .name = "treesitter_haskell"},
+        .{ .name = "treesitter_haskell" },
     };
 
     if (nvim) |n| {
@@ -86,25 +120,16 @@ pub fn build(b: *std.Build) !void {
         for (nvim_tls.step.dependencies.items) |dep| {
             std.debug.print("found dep with id: {}\n", .{dep.id});
 
+            // the only top level artifact is nvim
             if (dep.cast(std.Build.Step.InstallArtifact)) |install_artifact| {
                 const compile_step = install_artifact.artifact;
                 // statically link neovim with libc, musl recommended
                 compile_step.rdynamic = false;
                 b.installArtifact(compile_step);
             }
-            if (dep.cast(std.Build.Step.InstallDir)) |install_dir| {
-                for (install_dir.step.dependencies.items) |idep| {
-                    std.debug.print("found inner dep with id: {}\n", .{idep.id});
 
-                    if (idep.cast(std.Build.Step.WriteFile)) |wf| {
-                        b.installDirectory(.{
-                            .source_dir = wf.getDirectory(),
-                            .install_dir = .prefix,
-                            .install_subdir = "runtime/",
-                        });
-                    }
-                }
-            }
+            // recurse to find runtime/ file installs etc
+            stealInstalls(b, dep);
         }
 
         for (grammars) |grammar| {
@@ -187,8 +212,8 @@ fn buildFzfNative(
     fzf_lib.addCSourceFile(.{ .file = b.path("pack/plugins/start/telescope-fzf-native.nvim/src/fzf.c") });
     fzf_lib.addIncludePath(b.path("pack/plugins/start/telescope-fzf-native.nvim/src"));
     fzf_lib.linkLibC();
-    
-    const install_path = b.fmt("fzf.{s}", .{ dynlibExtensionForTarget(target) });
+
+    const install_path = b.fmt("fzf.{s}", .{dynlibExtensionForTarget(target)});
     const install = b.addInstallArtifact(fzf_lib, .{ .dest_sub_path = install_path });
     return &install.step;
 }
@@ -209,8 +234,8 @@ pub fn installFzfNative(b: *std.Build) *std.Build.Step {
 fn installFzfNativeMakeFn(step: *std.Build.Step, make_options: std.Build.Step.MakeOptions) anyerror!void {
     _ = make_options;
     const b = step.owner;
-    const libname = b.fmt("fzf.{s}", .{ dynlibExtensionForTarget(global_target.?) });
-    const relative_src = b.fmt("zig-out/lib/{s}", .{ libname });
+    const libname = b.fmt("fzf.{s}", .{dynlibExtensionForTarget(global_target.?)});
+    const relative_src = b.fmt("zig-out/lib/{s}", .{libname});
     const relative_dest = "pack/plugins/start/telescope-fzf-native.nvim/build";
     const cwd = std.fs.cwd();
     // using ascii path should be fine, all ascii characters so on windows it is wtf8 compatible, in theory

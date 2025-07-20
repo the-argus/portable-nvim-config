@@ -23,7 +23,7 @@ vim.opt.incsearch = true  -- Show matches as you type
 -- Visual settings
 -- vim.cmd.colorscheme("retrobox") -- gruvbox, dim comments
 -- vim.cmd.colorscheme("sorbet") -- looks like the joker wrote code, bright comments
-vim.cmd.colorscheme("lunaperche") -- decent, bright comments
+-- vim.cmd.colorscheme("lunaperche") -- decent, bright comments
 -- vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
 -- vim.api.nvim_set_hl(0, "NormalNC", { bg = "none" })
 -- vim.api.nvim_set_hl(0, "EndOfBuffer", { bg = "none" })
