@@ -137,6 +137,8 @@ pub fn build(b: *std.Build) !void {
             b.getInstallStep().dependOn(&install_step.step);
         }
 
+        const add_ts_parser = b.lazyImport(@This(), "nvim").?.add_ts_parser;
+
         // not dependent on neovim to build but it doesnt make much sense to
         // build the grammars without neovim
         for (grammars) |grammar| {
@@ -208,32 +210,6 @@ fn dynlibExtensionForTarget(target: std.Build.ResolvedTarget) []const u8 {
     } else {
         return "so";
     }
-}
-
-pub fn add_ts_parser(
-    b: *std.Build,
-    name: []const u8,
-    parser_dir: std.Build.LazyPath,
-    scanner: bool,
-    target: std.Build.ResolvedTarget,
-    optimize: std.builtin.OptimizeMode,
-) *std.Build.Step {
-    const parser = b.addLibrary(.{
-        .name = name,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-        }),
-        .linkage = .dynamic,
-    });
-    parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/parser.c") });
-    if (scanner) parser.addCSourceFile(.{ .file = parser_dir.path(b, "src/scanner.c") });
-    parser.addIncludePath(parser_dir.path(b, "src"));
-    parser.linkLibC();
-
-    const install_path = b.fmt("nvim/parser/{s}.{s}", .{ name, dynlibExtensionForTarget(target) });
-    const parser_install = b.addInstallArtifact(parser, .{ .dest_sub_path = install_path });
-    return &parser_install.step;
 }
 
 fn buildFzfNative(
