@@ -3,9 +3,8 @@ if not is_okay then
     return
 end
 
--- avoid needing to install the parser binaries
-vim.opt.runtimepath:prepend(vim.fn.stdpath("config") .. "/zig-out/lib")
-
+-- check if parsers are successfully installed with
+-- :echo nvim_get_runtime_file('parser/*.so', v:true)
 configs.setup {
     ensure_installed = {}, -- installed and build with portable nvim config
     sync_install = false,
