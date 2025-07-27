@@ -27,12 +27,20 @@
         {
           packages = with pkgs; [
             zig_0_14
+            gdb
             (pkgs.writeShellScriptBin "tvim" ''
                 export XDG_CONFIG_HOME=$PWD/..
                 export NVIM_APPNAME=$(${pkgs.coreutils}/bin/basename $PWD)
                 export VIMRUNTIME=$PWD/zig-out/runtime
                 export PATH=$PWD/zig-out/bin:$PATH
                 nvim -u init.lua $@
+            '')
+            (pkgs.writeShellScriptBin "debug" ''
+                export XDG_CONFIG_HOME=$PWD/..
+                export NVIM_APPNAME=$(${pkgs.coreutils}/bin/basename $PWD)
+                export VIMRUNTIME=$PWD/zig-out/runtime
+                export PATH=$PWD/zig-out/bin:$PATH
+                gdb --args nvim -u init.lua $@
             '')
             (pkgs.writeShellScriptBin "build" ''
 	    	zig build -Dtarget=x86_64-linux-musl

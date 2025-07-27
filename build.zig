@@ -18,7 +18,7 @@ pub fn build(b: *std.Build) !void {
     var nvim: ?*std.Build.Dependency = null;
 
     if (build_nvim) {
-        nvim = b.lazyDependency("nvim", .{
+        nvim = b.lazyDependency("neovim", .{
             .target = target,
             .optimize = optimize,
         });
@@ -34,50 +34,6 @@ pub fn build(b: *std.Build) !void {
     });
 
     b.installArtifact(zls.artifact("zls"));
-
-    const Grammar = struct {
-        name: []const u8,
-        subdir: ?[]const u8 = null,
-        scanner: bool = true,
-    };
-    const grammars = &[_]Grammar{
-        .{ .name = "treesitter_c", .scanner = false },
-        .{ .name = "treesitter_cpp" },
-        .{ .name = "treesitter_bash" },
-        .{ .name = "treesitter_regex", .scanner = false },
-        .{ .name = "treesitter_java", .scanner = false },
-        .{ .name = "treesitter_css" },
-        .{ .name = "treesitter_typescript", .subdir = "typescript" },
-        .{ .name = "treesitter_html" },
-        .{ .name = "treesitter_python" },
-        .{ .name = "treesitter_json", .scanner = false },
-        .{ .name = "treesitter_go", .scanner = false },
-        .{ .name = "treesitter_javascript" },
-        .{ .name = "treesitter_c_sharp" },
-        .{ .name = "treesitter_rust" },
-        .{ .name = "treesitter_printf", .scanner = false },
-        .{ .name = "treesitter_toml" },
-        .{ .name = "treesitter_yaml" },
-        .{ .name = "treesitter_zig", .scanner = false },
-        .{ .name = "treesitter_odin" },
-        .{ .name = "treesitter_glsl", .scanner = false },
-        .{ .name = "treesitter_hlsl" },
-        .{ .name = "treesitter_make", .scanner = false },
-        // markdown included manually
-        .{ .name = "treesitter_lua" },
-        .{ .name = "treesitter_vim" },
-        .{ .name = "treesitter_diff", .scanner = false },
-        .{ .name = "treesitter_asm", .scanner = false },
-        .{ .name = "treesitter_godot_resource" },
-        .{ .name = "treesitter_gdscript" },
-        .{ .name = "treesitter_disassembly" },
-        .{ .name = "treesitter_slint", .scanner = false },
-        .{ .name = "treesitter_qml" },
-        .{ .name = "treesitter_nix" },
-        .{ .name = "treesitter_nim" },
-        .{ .name = "treesitter_nasm", .scanner = false },
-        .{ .name = "treesitter_haskell" },
-    };
 
     if (nvim) |n| {
         const nvim_tls = n.builder.top_level_steps.get("nvim") orelse @panic("expected a step called nvim inside the nvim dependency");
@@ -136,27 +92,6 @@ pub fn build(b: *std.Build) !void {
 
             b.getInstallStep().dependOn(&install_step.step);
         }
-
-        const add_ts_parser = b.lazyImport(@This(), "nvim").?.add_ts_parser;
-
-        // not dependent on neovim to build but it doesnt make much sense to
-        // build the grammars without neovim
-        for (grammars) |grammar| {
-            const dep = b.dependency(grammar.name, .{ .target = target, .optimize = optimize });
-            const offset = ("treesitter_").len;
-            const path = block: {
-                if (grammar.subdir) |subdir| {
-                    break :block dep.path(subdir);
-                }
-                break :block dep.path(".");
-            };
-            const parsername = grammar.name[offset..];
-            b.getInstallStep().dependOn(add_ts_parser(b, parsername, path, grammar.scanner, target, optimize));
-        }
-
-        const markdown = b.dependency("treesitter_markdown", .{ .target = target, .optimize = optimize });
-        b.getInstallStep().dependOn(add_ts_parser(b, "markdown", markdown.path("tree-sitter-markdown/"), true, target, optimize));
-        b.getInstallStep().dependOn(add_ts_parser(b, "markdown_inline", markdown.path("tree-sitter-markdown-inline/"), true, target, optimize));
     }
 
     const fzf_step = buildFzfNative(b, target, optimize);
