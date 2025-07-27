@@ -6,8 +6,8 @@
 
     .dependencies = .{
         .neovim = .{
-            .url = "https://github.com/the-argus/neovim/archive/8325b04a49964a901ce0bc109799e55483875d77.tar.gz",
-            .hash = "neovim-0.12.0-OHowebN-ZwMY6GWdNFu_zyMuMDRrbYIqmrErQiTg3z7o",
+            .url = "https://github.com/the-argus/neovim/archive/784a878a3c793bb9814c82c73587df5aa0eb391d.tar.gz",
+            .hash = "neovim-0.12.0-OHoweZeAZwPd9SX56s2yhlgmJbV7fzJ7xUDvcw3ZghPG",
             .lazy = true,
         },
         .zls = .{
